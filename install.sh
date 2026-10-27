@@ -32,19 +32,19 @@ green() { printf '\033[32m%s\033[0m\n' "$*";}
 info() { printf '%s\n' "$*";}
 
 need_root() {
-[ "$(id -u)" = "0"] || { red "请用 root 运行：sudo bash $0"; exit 1;}
+[ "$(id -u)" = "0" ] || { red "请用 root 运行：sudo bash $0"; exit 1;}
 }
 
 check_os() {
-[ -f /etc/debian_version] || { red "仅支持 Debian / Ubuntu 系统"; exit 1;}
+[ -f /etc/debian_version ] || { red "仅支持 Debian / Ubuntu 系统"; exit 1;}
 command -v systemctl >/dev/null || { red "未检测到 systemd"; exit 1;}
 }
 
 public_ip() {
 local ip=""
 ip="$(curl -fsS4 --max-time 10 https://www.cloudflare.com/cdn-cgi/trace 2>/dev/null | awk -F= '/^ip=/{print $2}')" || true
-[ -z "$ip"] && ip="$(curl -fsS4 --max-time 10 https://api.ipify.org 2>/dev/null)" || true
-[ -n "$ip"] || { red "无法自动获取公网 IP，请手动编辑 $INFO_FILE"; ip="YOUR_SERVER_IP";}
+[ -z "$ip" ] && ip="$(curl -fsS4 --max-time 10 https://api.ipify.org 2>/dev/null)" || true
+[ -n "$ip" ] || { red "无法自动获取公网 IP，请手动编辑 $INFO_FILE"; ip="YOUR_SERVER_IP";}
 printf '%s' "$ip"
 }
 
@@ -59,7 +59,7 @@ bash -c "$(curl -fsSL https://sing-box.app/deb-install.sh)"
 
 gen_cert() {
 mkdir -p "$CERT_DIR"
-if [! -f "$CERT_FILE"]; then
+if [ ! -f "$CERT_FILE" ]; then
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 3650 -nodes \
 -subj "/CN=$CERT_SNI" >/dev/null 2>&1
@@ -86,8 +86,8 @@ reality="$(sing-box generate reality-keypair)"
 priv="$(printf '%s' "$reality" | awk '/PrivateKey/{print $2}')"
 pub="$(printf '%s' "$reality" | awk '/PublicKey/{print $2}')"
 short_id="$(openssl rand -hex 8)"
-hy2_pass="$(openssl rand -base64 18 | tr -d '\n')"
-anytls_pass="$(openssl rand -base64 18 | tr -d '\n')"
+hy2_pass="$(openssl rand -hex 12)"
+anytls_pass="$(openssl rand -hex 12)"
 
 mkdir -p "$CONFIG_DIR"
 cat > "$CONFIG_FILE" <<EOF
@@ -197,7 +197,7 @@ green "已卸载 sing-box 并删除 $CONFIG_DIR"
 
 case "${1:-install}" in
 install) do_install;;
-show) [ -f "$INFO_FILE"] && cat "$INFO_FILE" || { red "未找到 $INFO_FILE，请先安装"; exit 1;};;
+show) [ -f "$INFO_FILE" ] && cat "$INFO_FILE" || { red "未找到 $INFO_FILE，请先安装"; exit 1;};;
 restart) need_root; systemctl restart sing-box; green "已重启";;
 uninstall) do_uninstall;;
 *) red "用法：bash $0 [install|show|restart|uninstall]"; exit 1;;
